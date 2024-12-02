@@ -74,24 +74,63 @@ def draw_graph():
 def find_path(start, goal):
     return nx.shortest_path(graph, start, goal)
 
-# Robots
+# Robots Attribute definition
 robots = [
-    {"id": 1, "color": RED, "path": [], "position": None, "step": 0, "goal": None, "status": "free", "next_node": None},
-    {"id": 2, "color": BLUE, "path": [], "position": None, "step": 0, "goal": None, "status": "free", "next_node": None},
+    {"id": 1, "color": RED, "path": [], "step": 0, "goal": None, "status": "free", "next_node": None, "curr_node": "X1"},
+    {"id": 2, "color": BLUE, "path": [], "step": 0, "goal": None, "status": "free", "next_node": None, "curr_node": "X5"},
 ]
 
 # Tasks: Input as start -> goal pairs
-tasks = [("X1", "X4"), ("X2", "X6"), ("X4", "X3"), ("X6", "X1"), ("X3", "X6")]
+# tasks = [("X1", "X4"), ("X2", "X6"), ("X4", "X3"), ("X6", "X1"), ("X3", "X6")] # Set 1 of tasks success
+tasks = [("X2", "X4"), ("R3", "X2"), ("X6", "X1"), ("X2", "X5")] # Set 2 of tasks
 
 # Task assignment function
 def assign_task_to_robot(robot):
     if tasks:
         start, goal = tasks.pop(0)
-        robot["path"] = find_path(start, goal)
+        if robot["curr_node"] != start:
+            path_to_start = find_path(robot["curr_node"], start)
+        else:
+            path_to_start = []
+        task_path = find_path(start, goal)
+        robot["path"] = path_to_start + task_path
+        print(f"Robot {robot['id']} assigned path: {robot['path'].pop(0)}")
         robot["goal"] = goal
         robot["step"] = 0
         robot["status"] = "busy"
         robot["next_node"] = robot["path"][0] if robot["path"] else None
+
+def move_robot(robot, node=None):
+    if node is None:
+        global task_counter
+        # Move the robot to the next node
+        robot["curr_node"] = robot["next_node"]
+        print(f"Robot {robot['id']} moving to {robot['next_node']} (step {robot['step'] + 1})")
+        robot["step"] += 1
+        if robot['step'] < len(robot["path"]):
+            robot['next_node'] = robot['path'][robot['step']]
+        else:
+            robot['next_node'] = None
+
+        # Check if task is completed
+        if robot["curr_node"] == robot["path"][-1]:
+            print(f"Task {task_counter} completed by Robot {robot['id']}!")
+            task_counter += 1
+            robot["status"] = "free"
+            robot["path"] = []
+            robot["goal"] = None
+            robot["next_node"] = None
+            # Assign new task immediately
+            assign_task_to_robot(robot)
+    else:
+        # For Deadlock resolving
+        print(f"Robot {robot['id']} Docking to {node} (step {robot['step'] + 1})")
+        robot["next_node"] = robot["curr_node"]
+        robot["curr_node"] = node
+        robot["path"].insert(robot["step"], node)
+        robot["step"]+=1
+        robot["path"].insert(robot["step"], robot["curr_node"])
+        robot["status"] = "wait"
 
 # Main simulation loop
 task_counter = 1
@@ -102,61 +141,59 @@ while running:
             running = False
 
     draw_graph()
-
+    robot = robots[0]
+    print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
+    robot = robots[1]
+    print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
     # Assign tasks to free robots
     for robot in robots:
         if robot["status"] == "free":
             assign_task_to_robot(robot)
-
-    # Update next_node for all robots
-    for robot in robots:
-        if robot["status"] == "busy":
-            current_step = robot["step"]
-            if current_step + 1 < len(robot["path"]):
-                robot["next_node"] = robot["path"][current_step + 1]
-            else:
-                robot["next_node"] = None  # Task complete
+        elif robot["status"] == "busy":
+            move_robot(robot)
+        else:
+            robot["status"] = "busy"
+        
+        pygame.draw.circle(screen, robot["color"], positions[robot["curr_node"]], 10)
 
     # Check for conflicts
     for robot in robots:
         if robot["status"] == "busy" and robot["next_node"]:
             for other_robot in robots:
-                if (
-                    other_robot["id"] != robot["id"]
-                    and other_robot.get("next_node") == robot["next_node"]
-                    and other_robot["status"] == "busy"
-                ):
-                    # Conflict detected, set the current robot to wait
-                    robot["status"] = "wait"
-                    break
-
-    # Move robots
-    for robot in robots:
-        if robot["status"] == "busy" and robot["next_node"]:
-            # Move the robot to the next node
-            robot["position"] = positions[robot["next_node"]]
-            robot["step"] += 1
-
-            # Check if task is completed
-            if robot["step"] == len(robot["path"]):
-                print(f"Task {task_counter} completed by Robot {robot['id']}!")
-                task_counter += 1
-                robot["status"] = "free"
-                robot["path"] = []
-                robot["goal"] = None
-                robot["next_node"] = None
-                # Assign new task immediately
-                assign_task_to_robot(robot)
-
-        elif robot["status"] == "wait":
-            # Reset status to busy for the next iteration
-            robot["status"] = "busy"
-
-        # Draw robot
-        if robot["position"]:
-            pygame.draw.circle(screen, robot["color"], robot["position"], 10)
+                if (other_robot["id"] != robot["id"] and other_robot["status"] == "busy"):
+                    if other_robot.get("next_node") == robot["next_node"]:
+                        # Conflict detected, set the current robot to wait
+                        print("Conflict 1")
+                        if len(robot['path'][robot['step']:]) > len(other_robot['path'][other_robot['step']:]):
+                            other_robot["status"] = "wait"
+                            break
+                        else:
+                            robot["status"] = "wait"
+                            break
+                    if other_robot.get("next_node") == robot["curr_node"] and robot.get("next_node") == other_robot["curr_node"]:
+                        # send one of the robots to Docking point: implement later
+                        print("Conflict 2")
+                        docking_points1 = set(graph.neighbors(robot["curr_node"])) - set(other_robot["path"])
+                        docking_points2 = set(graph.neighbors(other_robot["curr_node"])) - set(robot["path"])
+                        if (len(docking_points1) ^ len(docking_points2)) == 1:
+                            if len(docking_points1) != 0:
+                                move_robot(robot, list(docking_points1)[0])
+                            else:
+                                move_robot(other_robot, list(docking_points2)[0])
+                        else:
+                            if len(robot['path'][robot['step']:]) > len(other_robot['path'][other_robot['step']:]):
+                                move_robot(other_robot, list(docking_points2)[0])
+                            else:
+                                move_robot(robot, list(docking_points1)[0])
+                        
 
     time.sleep(0.5)
     pygame.display.flip()
+    robot = robots[0]
+    print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
+    robot = robots[1]
+    print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
+
+    input()
 
 pygame.quit()
