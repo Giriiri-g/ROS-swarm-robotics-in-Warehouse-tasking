@@ -11,7 +11,6 @@ Stage4_Queue = []
 
 def ack_response_r1_callback(ACKR):
     global Stage2_Queue, Stage3_Queue
-    print("check4")
     for ind, command in enumerate(Stage2_Queue.copy()):
         if command["ID"] == ACKR.data.split('_')[1]:
             rospy.loginfo(f"Recieved Ack Response from Node R1: Command ID={ACKR.data}")
@@ -20,7 +19,6 @@ def ack_response_r1_callback(ACKR):
 
 def ack_response_r2_callback(ACKR):
     global Stage2_Queue, Stage3_Queue
-    print("check5")
     for ind, command in enumerate(Stage2_Queue.copy()):
         if command["ID"] == ACKR.data.split('_')[1]:
             rospy.loginfo(f"Recieved Ack Response from Node R2: Command ID={ACKR.data}")
@@ -75,43 +73,34 @@ def core_node():
         if Command_Queue != []:
             Stage1_Queue.extend(Command_Queue)
             Command_Queue = []
-            print("check1")
         index = []
         for ind, command in enumerate(Stage1_Queue):
             if command["Node"] == "R1":
                 rospy.loginfo(f"Publishing ACK ID: {command['ID']} to Node R1.")
                 ack_pub_r1.publish(f"ACK_{command['ID']}")
                 index.append(ind)
-                print("check2")
             else:
                 rospy.loginfo(f"Publishing ACK ID: {command['ID']} to Node R2.")
                 ack_pub_r2.publish(f"ACK_{command['ID']}")
                 index.append(ind)
         for ind in index[::-1]:
             Stage2_Queue.append(Stage1_Queue.pop(ind))
-            print("check3")
         index=[]
         for ind, command in enumerate(Stage3_Queue):
             if command["Node"] == "R1":
-                print("check6")
                 rospy.loginfo(f"Publishing Command {command['ID']} to Node R1: {command['command']}")
                 position_pub_r1.publish(f"{command['command']}_{command['ID']}")
                 index.append(ind)
             else:
-                print("check7")
                 rospy.loginfo(f"Publishing Command {command['ID']} to Node R2: {command['command']}")
                 position_pub_r2.publish(f"{command['command']}_{command['ID']}")
                 index.append(ind)
         for ind in index[::-1]:
             Stage4_Queue.append(Stage3_Queue.pop(ind))
-            print("check8")
-
         rate.sleep()
 
 if __name__ == '__main__':
     try:
-        spin_thread = threading.Thread(target=spin_thread)
-        spin_thread.start()
         core_node()
     except rospy.ROSInterruptException:
         pass

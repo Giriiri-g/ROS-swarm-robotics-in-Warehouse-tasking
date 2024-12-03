@@ -99,8 +99,6 @@ def robot2_node():
 
 if __name__ == '__main__':
     try:
-        spin_thread = threading.Thread(target=spin_thread)
-        spin_thread.start()
         robot2_node()
     except rospy.ROSInterruptException:
         pass
