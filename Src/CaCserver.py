@@ -67,9 +67,6 @@ def core_node():
     rospy.Subscriber('/robot1_position', String, robot1_position_callback)
     rospy.Subscriber('/robot2_position', String, robot2_position_callback)
 
-    spin_thread = threading.Thread(target=spin_thread)
-    spin_thread.start()
-    
     rate = rospy.Rate(1)  # 1 Hz
 
     while not rospy.is_shutdown():
@@ -105,6 +102,8 @@ def core_node():
 
 if __name__ == '__main__':
     try:
+        spin_thread = threading.Thread(target=spin_thread)
+        spin_thread.start()
         core_node()
     except rospy.ROSInterruptException:
         pass
