@@ -44,11 +44,13 @@ def on_ack_received(msg):
     global Stage1Queue
     rospy.loginfo(f"New ACK Handshake Initiated: command ID={msg.data.split('_')[1]}.")
     Stage1Queue.append(msg.data)
+    print("check0")
 
 def on_position_received(msg):
     global curr_node, Processing, Stage2Queue, Stage3Queue
     # msg.data = X1_23 => command_command-ID
     command, id = msg.data.split('_')
+    print("check4")
     if id in Stage2Queue:
         rospy.loginfo(f"Command Received from Command and Control Server\nConnection Already Established: Command={command}, ID={id}")
         Stage2Queue.remove(id)
@@ -62,6 +64,7 @@ def move(command, id):
     """
     global Processing
     Processing = True
+    print("check6")
     rospy.loginfo(f"Machine Command Sent to Robot 1: Command={command} ID={id}")
     pass
 
@@ -83,12 +86,14 @@ def robot1_node():
             ack_response_pub.publish(command)
             rospy.loginfo(f"ACK Accepted. Returning ACK: command ID={command.split('_')[1]}")
             index.append(ind)
+            print("check2")
         for ind in index[::-1]:
             Stage2Queue.append(Stage1Queue.pop(ind).split('_')[1])
-
+            print("check3")
         if not Processing and Stage3Queue != []:
             Stage4Queue = Stage3Queue.pop(0)
             command, id = Stage4Queue.split('_')
+            print("check5")
             move(command, id)
             Processing = False  # Get back the report from Robot, if no report -> then send failure
             status = random.choice(["Success", "Failure"])  # Implement the return report from Robot 1 here and set the status
