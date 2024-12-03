@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import threading
 from std_msgs.msg import String
 
 # Movement dictionary for R1
@@ -65,6 +66,9 @@ def move(command, id):
     rospy.loginfo(f"Machine Command Sent to Robot 1: Command={command} ID={id}")
     pass
 
+def spin_thread():
+    rospy.spin()
+
 import random
 # Robot1 Node
 def robot1_node():
@@ -77,8 +81,8 @@ def robot1_node():
     rospy.Subscriber('/position_to_r1', String, on_position_received)
 
     rate = rospy.Rate(1)  # 1 Hz
-    index = []
     while not rospy.is_shutdown():
+        index = []
         for ind, command in enumerate(Stage1Queue):
             ack_response_pub.publish(command)
             rospy.loginfo(f"ACK Accepted. Returning ACK: command ID={command.split('_')[1]}")
@@ -97,6 +101,8 @@ def robot1_node():
 
 if __name__ == '__main__':
     try:
+        spin_thread = threading.Thread(target=spin_thread)
+        spin_thread.start()
         robot1_node()
     except rospy.ROSInterruptException:
         pass

@@ -2,6 +2,7 @@
 
 import rospy
 from std_msgs.msg import String
+import threading
 
 # Movement dictionary for R2
 translate = {
@@ -66,6 +67,9 @@ def move(command, id):
     rospy.loginfo(f"Machine Command Sent to Robot 2: Command={command} ID={id}")
     pass
 
+def spin_thread():
+    rospy.spin()
+
 import random
 # Robot2 Node
 def robot2_node():
@@ -99,6 +103,8 @@ def robot2_node():
 
 if __name__ == '__main__':
     try:
+        spin_thread = threading.Thread(target=spin_thread)
+        spin_thread.start()
         robot2_node()
     except rospy.ROSInterruptException:
         pass

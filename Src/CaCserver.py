@@ -2,6 +2,10 @@
 
 import rospy
 from std_msgs.msg import String
+import threading
+
+def spin_thread():
+    rospy.spin()
 
 Command_Queue = [{"Node":"R1", "ID":'21', "command":"X1"}, {"Node":"R2", "ID":'22', "command":"X5"}]
 Stage1_Queue = []
@@ -102,6 +106,8 @@ def core_node():
 
 if __name__ == '__main__':
     try:
+        spin_thread = threading.Thread(target=spin_thread)
+        spin_thread.start()
         core_node()
     except rospy.ROSInterruptException:
         pass
