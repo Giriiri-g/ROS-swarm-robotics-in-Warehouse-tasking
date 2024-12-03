@@ -46,7 +46,7 @@ def on_ack_received(msg):
     Stage1Queue.append(msg.data)
 
 def on_position_received(msg):
-    global curr_node, Processing, Stage2Queue, Stage3Queue
+    global curr_node, Stage2Queue, Stage3Queue
     # msg.data = X5_23 => command_command-ID
     command, id = msg.data.split('_')
     if id in Stage2Queue:
@@ -55,7 +55,6 @@ def on_position_received(msg):
         Stage3Queue.append(translate[curr_node][command]+'_'+id)
         rospy.loginfo(f"Command Translated to Machine Command: Command={command} ID={id} Translation={translate[curr_node][command]}")
 
-import random
 def move(command, id):
     """
     Send the master command to Robot Node 2
@@ -67,11 +66,11 @@ def move(command, id):
     rospy.loginfo(f"Machine Command Sent to Robot 2: Command={command} ID={id}")
     pass
 
-
+import random
 # Robot2 Node
 def robot2_node():
-    global Stage1Queue, Stage2Queue, Stage3Queue, Stage4Queue
-    rospy.init_node('Robot2 Controller', anonymous=True)
+    global Stage1Queue, Stage2Queue, Stage3Queue, Stage4Queue, Processing
+    rospy.init_node('Robot2_Controller', anonymous=True)
 
     ack_response_pub = rospy.Publisher('/ack_response_r2', String, queue_size=10)
     position_pub = rospy.Publisher('/robot2_position', String, queue_size=10)
@@ -79,14 +78,17 @@ def robot2_node():
     rospy.Subscriber('/position_to_r2', String, on_position_received)
 
     rate = rospy.Rate(1)  # 1 Hz
+    index=[]
     while not rospy.is_shutdown():
-        for ind, command in enumerate(Stage1Queue.copy()):
+        for ind, command in enumerate(Stage1Queue):
             ack_response_pub.publish(command)
             rospy.loginfo(f"ACK Accepted. Returning ACK: command ID={command.split('_')[1]}")
+            index.append(ind)
+        for ind in index[::-1]:
             Stage2Queue.append(Stage1Queue.pop(ind).split('_')[1])
 
 
-        if not Processing:
+        if not Processing and Stage3Queue != []:
             Stage4Queue = Stage3Queue.pop(0)
             command, id = Stage4Queue.split('_')
             move(command, id)
