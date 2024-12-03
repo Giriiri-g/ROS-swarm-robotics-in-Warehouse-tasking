@@ -86,7 +86,7 @@ def robot1_node():
         for ind in index[::-1]:
             Stage2Queue.append(Stage1Queue.pop(ind).split('_')[1])
 
-        if not Processing and Stage3Queue:
+        if not Processing and Stage3Queue != []:
             Stage4Queue = Stage3Queue.pop(0)
             command, id = Stage4Queue.split('_')
             move(command, id)
