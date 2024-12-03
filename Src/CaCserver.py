@@ -55,7 +55,7 @@ def robot2_position_callback(POSR):
 
 
 def core_node():
-    global Command_Queue, Stage1_Queue, Stage2_Queue, Stage3_Queue, Stage4_Queue
+    global Command_Queue, Stage1_Queue, Stage2_Queue, Stage3_Queue, Stage4_Queue, spin_thread
 
     rospy.init_node('Command_and_control_server', anonymous=True)
 
@@ -73,7 +73,7 @@ def core_node():
 
     spin_thread = threading.Thread(target=spin_thread)
     spin_thread.start()
-    
+
     rate = rospy.Rate(1)  # 1 Hz
 
     while not rospy.is_shutdown():
