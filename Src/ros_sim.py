@@ -1,6 +1,7 @@
 import pygame
 import networkx as nx
 import time
+import heapq
 
 # Initialize Pygame
 pygame.init()
@@ -72,6 +73,28 @@ def draw_graph():
 
 # Pathfinding using networkx's shortest path
 def find_path(start, goal):
+    priority_queue = [(0, start, [])]
+    visited = {}
+
+    while priority_queue:
+        current_cost, current_node, path = heapq.heappop(priority_queue)
+
+        if current_node in visited and visited[current_node] <= current_cost:
+            continue
+
+        visited[current_node] = current_cost
+
+        path = path + [current_node]
+
+        if current_node == goal:
+            return path
+
+        for neighbor in graph.neighbors(current_node):
+            weight = graph[current_node][neighbor].get('weight', 1)
+            if neighbor not in visited or current_cost + weight < visited[neighbor]:
+                heapq.heappush(priority_queue, (current_cost + weight, neighbor, path))
+
+    return None
     return nx.shortest_path(graph, start, goal)
 
 # Robots Attribute definition
