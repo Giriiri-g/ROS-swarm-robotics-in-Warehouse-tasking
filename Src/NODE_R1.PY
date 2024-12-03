@@ -75,7 +75,7 @@ def spin_thread():
 import random
 # Robot1 Node
 def robot1_node():
-    global Stage1Queue, Stage2Queue, Stage3Queue, Stage4Queue, Processing, spin_thread 
+    global Stage1Queue, Stage2Queue, Stage3Queue, Stage4Queue, Processing, spin_thread
     rospy.init_node('Robot1_Controller', anonymous=True)
 
     ack_response_pub = rospy.Publisher('/ack_response_r1', String, queue_size=10)

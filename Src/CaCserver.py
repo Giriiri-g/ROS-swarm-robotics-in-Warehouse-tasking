@@ -75,7 +75,7 @@ def core_node():
 
     spin_thread = threading.Thread(target=spin_thread)
     spin_thread.start()
-    
+
     rate = rospy.Rate(1)  # 1 Hz
 
     while not rospy.is_shutdown():
