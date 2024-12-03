@@ -81,6 +81,9 @@ def robot2_node():
     rospy.Subscriber('/ack_to_r2', String, on_ack_received)
     rospy.Subscriber('/position_to_r2', String, on_position_received)
 
+    spin_thread = threading.Thread(target=spin_thread)
+    spin_thread.start()
+
     rate = rospy.Rate(1)  # 1 Hz
     while not rospy.is_shutdown():
         index=[]
@@ -103,8 +106,6 @@ def robot2_node():
 
 if __name__ == '__main__':
     try:
-        spin_thread = threading.Thread(target=spin_thread)
-        spin_thread.start()
         robot2_node()
     except rospy.ROSInterruptException:
         pass
