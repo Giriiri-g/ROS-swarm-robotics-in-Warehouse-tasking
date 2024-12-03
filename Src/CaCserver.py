@@ -3,7 +3,7 @@
 import rospy
 from std_msgs.msg import String
 
-Command_Queue = [["R1", "X1"], ["R2", "X5"]]
+Command_Queue = [{"Node":"R1", "ID":'21', "command":"X1"}, {"Node":"R2", "ID":'22', "command":"X5"}]
 Stage1_Queue = []
 Stage2_Queue = []
 Stage3_Queue = []
@@ -53,7 +53,7 @@ def robot2_position_callback(POSR):
 def core_node():
     global Command_Queue, Stage1_Queue, Stage2_Queue, Stage3_Queue, Stage4_Queue
 
-    rospy.init_node('Command and control server', anonymous=True)
+    rospy.init_node('Command_and_control_server', anonymous=True)
 
     # Publishers
     ack_pub_r1 = rospy.Publisher('/ack_to_r1', String, queue_size=10)
@@ -73,24 +73,30 @@ def core_node():
         if Command_Queue != []:
             Stage1_Queue.extend(Command_Queue)
             Command_Queue = []
-        for ind, command in enumerate(Stage1_Queue.copy()):
+        index = []
+        for ind, command in enumerate(Stage1_Queue):
             if command["Node"] == "R1":
                 rospy.loginfo(f"Publishing ACK ID: {command['ID']} to Node R1.")
                 ack_pub_r1.publish(f"ACK_{command['ID']}")
-                Stage2_Queue.append(Stage1_Queue.pop(ind))
+                index.append(ind)
             else:
                 rospy.loginfo(f"Publishing ACK ID: {command['ID']} to Node R2.")
                 ack_pub_r2.publish(f"ACK_{command['ID']}")
-                Stage2_Queue.append(Stage1_Queue.pop(ind))
-        for ind, command in enumerate(Stage3_Queue.copy()):
+                index.append(ind)
+        for ind in index[::-1]:
+            Stage2_Queue.append(Stage1_Queue.pop(ind))
+        index=[]
+        for ind, command in enumerate(Stage3_Queue):
             if command["Node"] == "R1":
                 rospy.loginfo(f"Publishing Command {command['ID']} to Node R1: {command['command']}")
                 position_pub_r1.publish(f"{command['command']}_{command['ID']}")
-                Stage4_Queue.append(Stage3_Queue.pop(ind))
+                index.append(ind)
             else:
                 rospy.loginfo(f"Publishing Command {command['ID']} to Node R2: {command['command']}")
                 position_pub_r2.publish(f"{command['command']}_{command['ID']}")
-                Stage4_Queue.append(Stage3_Queue.pop(ind))
+                index.append(ind)
+        for ind in index[::-1]:
+            Stage4_Queue.append(Stage3_Queue.pop(ind))
 
         rate.sleep()
 

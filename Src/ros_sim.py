@@ -82,7 +82,7 @@ robots = [
 
 # Tasks: Input as start -> goal pairs
 # tasks = [("X1", "X4"), ("X2", "X6"), ("X4", "X3"), ("X6", "X1"), ("X3", "X6")] # Set 1 of tasks success
-tasks = [("X2", "X4"), ("R3", "X2"), ("X6", "X1"), ("X2", "X5")] # Set 2 of tasks
+tasks = [("X1", "X4"), ("X5", "X2")] # Set 2 of tasks
 
 # Task assignment function
 def assign_task_to_robot(robot):
@@ -151,7 +151,7 @@ while running:
             assign_task_to_robot(robot)
         elif robot["status"] == "busy":
             move_robot(robot)
-        else:
+        else: # robot["status"] == "wait"
             robot["status"] = "busy"
         
         pygame.draw.circle(screen, robot["color"], positions[robot["curr_node"]], 10)
@@ -187,13 +187,13 @@ while running:
                                 move_robot(robot, list(docking_points1)[0])
                         
 
-    time.sleep(0.5)
+    time.sleep(2)
     pygame.display.flip()
     robot = robots[0]
     print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
     robot = robots[1]
     print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
 
-    input()
+    # input()
 
 pygame.quit()
