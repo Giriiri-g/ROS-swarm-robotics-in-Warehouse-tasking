@@ -78,8 +78,8 @@ def robot2_node():
     rospy.Subscriber('/position_to_r2', String, on_position_received)
 
     rate = rospy.Rate(1)  # 1 Hz
-    index=[]
     while not rospy.is_shutdown():
+        index=[]
         for ind, command in enumerate(Stage1Queue):
             ack_response_pub.publish(command)
             rospy.loginfo(f"ACK Accepted. Returning ACK: command ID={command.split('_')[1]}")
