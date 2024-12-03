@@ -69,7 +69,7 @@ def move(command, id):
 import random
 # Robot2 Node
 def robot2_node():
-    global Stage1Queue, Stage2Queue, Stage3Queue, Stage4Queue, Processing, spin_thread
+    global Stage1Queue, Stage2Queue, Stage3Queue, Stage4Queue, Processing
     rospy.init_node('Robot2_Controller', anonymous=True)
 
     ack_response_pub = rospy.Publisher('/ack_response_r2', String, queue_size=10)
