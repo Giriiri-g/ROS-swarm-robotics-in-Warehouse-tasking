@@ -1,15 +1,22 @@
 #include <Servo.h>
 
-const int USt1 = 3;
-const int USe1 = 4;
-const int USt2 = 5;
-const int USe2 = 6;
-const int USt3 = 7;
-const int USe3 = 8;
+const int USt1 = 2;
+const int USe1 = 3;
+const int USt2 = 4;
+const int USe2 = 5;
+const int USt3 = 6;
+const int USe3 = 7;
 
 Servo S1;
 Servo S2;
 Servo S3;
+
+int counter1 = 0;
+int counter2 = 0;
+int counter3 = 0;
+
+const int threshold = 10;    // Distance threshold in cm
+const int triggerCount = 20; // Number of consecutive readings required
 
 void setup() {
   pinMode(USt1, OUTPUT);
@@ -41,11 +48,11 @@ void loop() {
   Serial.print(distance3);
   Serial.println(" cm");
 
-  controlServo(S1, distance1);
-  controlServo(S2, distance2);
-  controlServo(S3, distance3);
+  handleServoControl(S1, distance1, counter1);
+  handleServoControl(S2, distance2, counter2);
+  handleServoControl(S3, distance3, counter3);
 
-  delay(500);
+  delay(50); // Adjust delay as needed
 }
 
 float measureDistance(int trigPin, int echoPin) {
@@ -60,10 +67,16 @@ float measureDistance(int trigPin, int echoPin) {
   return distance;
 }
 
-void controlServo(Servo& servo, float distance) {
-  if (distance < 20) {
-    servo.write(90);
+void handleServoControl(Servo& servo, float distance, int& counter) {
+  if (distance <= threshold) {
+    counter++;
+    if (counter >= triggerCount) {
+      servo.write(90); // Move servo
+      delay(1000);     // Optional delay for servo action
+      servo.write(0);  // Reset servo to original position
+      counter = 0;     // Reset counter
+    }
   } else {
-    servo.write(0);
+    counter = 0; // Reset counter if distance is above threshold
   }
 }
