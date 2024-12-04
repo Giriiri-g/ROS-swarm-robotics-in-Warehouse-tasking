@@ -38,6 +38,7 @@ Stage1Queue = []
 Stage2Queue = []
 Stage3Queue = []
 Stage4Queue = ''
+MachineCommand_Queue = ''
 
 
 def on_ack_received(msg):
@@ -62,9 +63,10 @@ def move(command, id):
     Send the master command to Robot Node 1
     set processing to True
     """
-    global Processing
+    global Processing, MachineCommand_Queue
     Processing = True
     rospy.loginfo(f"Machine Command Sent to Robot 1: Command={command} ID={id}")
+    MachineCommand_Queue += command
     pass
 
 import random
@@ -99,5 +101,6 @@ def robot1_node():
 if __name__ == '__main__':
     try:
         robot1_node()
+        print("NODE_R1 Commands:", MachineCommand_Queue)
     except rospy.ROSInterruptException:
         pass
