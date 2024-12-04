@@ -5,9 +5,11 @@ with robots performing pickup and drop-off tasks in a structured yet restricted 
 three drop-off depots. Robots will be tasked with navigating narrow aisles to move goods from pickup to drop-off points, demonstrating efficient pathfinding and traffic avoidance in real time.
 
 Environment Map
+
 ![Screenshot 2024-11-28 131733](https://github.com/user-attachments/assets/c3d6a49c-5a72-4e36-b14f-efc84f3618e0)
 
 System Architecture
+
 ![System Architecture](https://github.com/user-attachments/assets/01e614f2-cfae-4de5-b885-5ce88e7f49ad)
 
 
