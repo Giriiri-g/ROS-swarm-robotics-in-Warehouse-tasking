@@ -1,0 +1,5 @@
+<launch>
+	<node name="Command_and_control_server" type="CaCserver.py" output="screen" pkg="SwarmROS"/>
+	<node name="Robot1_Controller" type="NODE_R1.py" output="screen" pkg="SwarmROS"/>
+	<node name="Robot2_Controller" type="NODE_R2.py" output="screen" pkg="SwarmROS"/>
+</launch>
