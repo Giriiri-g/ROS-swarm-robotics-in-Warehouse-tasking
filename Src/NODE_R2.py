@@ -42,8 +42,10 @@ Stage4Queue = ''
 
 def on_ack_received(msg):
     global Stage1Queue
-    rospy.loginfo(f"New ACK Handshake Initiated: command ID={msg.data.split('_')[1]}.")
-    Stage1Queue.append(msg.data)
+    data = msg.data
+    if data not in Stage1Queue:
+        rospy.loginfo(f"New ACK Handshake Initiated to NODE_R2: command ID={data.split('_')[1]}.")
+        Stage1Queue.append(msg.data)
 
 def on_position_received(msg):
     global curr_node, Stage2Queue, Stage3Queue

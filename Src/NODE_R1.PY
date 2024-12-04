@@ -42,8 +42,10 @@ Stage4Queue = ''
 
 def on_ack_received(msg):
     global Stage1Queue
-    rospy.loginfo(f"New ACK Handshake Initiated: command ID={msg.data.split('_')[1]}.")
-    Stage1Queue.append(msg.data)
+    data = msg.data
+    if data not in Stage1Queue:
+        rospy.loginfo(f"New ACK Handshake Initiated to NODE_R1: command ID={data.split('_')[1]}.")
+        Stage1Queue.append(msg.data)
 
 def on_position_received(msg):
     global curr_node, Processing, Stage2Queue, Stage3Queue
@@ -77,8 +79,8 @@ def robot1_node():
     rospy.Subscriber('/position_to_r1', String, on_position_received)
 
     rate = rospy.Rate(1)  # 1 Hz
-    index = []
     while not rospy.is_shutdown():
+        index = []
         for ind, command in enumerate(Stage1Queue):
             ack_response_pub.publish(command)
             rospy.loginfo(f"ACK Accepted. Returning ACK: command ID={command.split('_')[1]}")
