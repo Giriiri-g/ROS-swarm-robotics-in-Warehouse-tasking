@@ -2,6 +2,8 @@ import pygame
 import networkx as nx
 import time
 import heapq
+import rospy
+from std_msgs.msg import String
 
 # Initialize Pygame
 pygame.init()
@@ -128,6 +130,7 @@ def move_robot(robot, node=None):
         global task_counter
         # Move the robot to the next node
         robot["curr_node"] = robot["next_node"]
+        # SEND (robot["id"], robot["curr_node"]) to CaCserve.py
         print(f"Robot {robot['id']} moving to {robot['next_node']} (step {robot['step'] + 1})")
         robot["step"] += 1
         if robot['step'] < len(robot["path"]):
@@ -150,6 +153,7 @@ def move_robot(robot, node=None):
         print(f"Robot {robot['id']} Docking to {node} (step {robot['step'] + 1})")
         robot["next_node"] = robot["curr_node"]
         robot["curr_node"] = node
+        # SEND (robot["id"], robot["curr_node"]) to CaCserve.py
         robot["path"].insert(robot["step"], node)
         robot["step"]+=1
         robot["path"].insert(robot["step"], robot["curr_node"])
@@ -158,6 +162,8 @@ def move_robot(robot, node=None):
 # Main simulation loop
 task_counter = 1
 running = True
+rospy.init_node('LogicSystems', anonymous=True)
+command_pub = rospy.Publisher('/Logic_to_CCS', String, queue_size=10)
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

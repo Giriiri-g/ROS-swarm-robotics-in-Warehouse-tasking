@@ -3,6 +3,7 @@
 import rospy
 from std_msgs.msg import String
 
+Command_ID = 0
 Command_Queue = [{"Node":"R1", "ID":'21', "command":"I1"}, {"Node":"R2", "ID":'22', "command":"I10"}]
 Stage1_Queue = []
 Stage2_Queue = []
@@ -48,6 +49,11 @@ def robot2_position_callback(POSR):
             Stage3_Queue.pop(ind)
             return
 
+def LogicInput(command): # command of the form "NODE_State" -> "R1_I10"
+    global Command_Queue, Command_ID
+    Node, State = command.data.split("_")
+    Command_Queue.append({"Node":Node, "ID":Command_ID, "command":State})
+    Command_ID+=1
 
 def core_node():
     global Command_Queue, Stage1_Queue, Stage2_Queue, Stage3_Queue
@@ -61,6 +67,7 @@ def core_node():
     position_pub_r2 = rospy.Publisher('/position_to_r2', String, queue_size=10)
 
     # Subscribers
+    rospy.Subscriber('/Logic_to_CCS', String, LogicInput)
     rospy.Subscriber('/ack_response_r1', String, ack_response_r1_callback)
     rospy.Subscriber('/ack_response_r2', String, ack_response_r2_callback)
     rospy.Subscriber('/robot1_position', String, robot1_position_callback)
