@@ -1,19 +1,44 @@
 #include <map>
 #include <string>
-using namespace std;
+#include <WiFi.h>
 
+using namespace std;
+// IMPORTANT = ROBOT 1 code uses different pin configuration
 typedef std::map<char, string> InnerMap; // Map char to string
 typedef std::map<char, InnerMap> NestedMap; // Map char to InnerMap
+
+const char* ssid = ";)";             // Replace with your WiFi SSID
+const char* password = "123456788";  // Replace with your WiFi password
+
+String commands = "";            // Dynamic command storage initialized with some default commands
+
+WiFiServer wifiServer(80); 
 
 NestedMap translate;
 int m1pin2 = 25; 
 int m1pin1 = 26; 
 int m2pin1 = 13; 
 int m2pin2 = 27; 
-char commands[] = {'W', 'A', 'S', 'D' };
 char Curr_orientation = 'W';
 
 void setup() {
+
+  Serial.begin(115200);
+
+  // Connect to WiFi
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to WiFi");
+  Serial.print("ESP32 IP Address: ");
+  Serial.println(WiFi.localIP());
+  
+  wifiServer.begin();
+
+
   pinMode(m1pin1, OUTPUT);
   pinMode(m1pin2, OUTPUT);
   pinMode(m2pin1, OUTPUT);
@@ -38,21 +63,7 @@ void setup() {
   translate['D']['S'] = "DW";
   translate['D']['D'] = "W";
 
-  Serial.begin(115200);
-  Serial.println("Testing DC Motor...");
 
-  for (int i = 0; i < sizeof(commands); i++) {
-    char command = commands[i];
-    string executable = translate[Curr_orientation][command];
-    for (char cmd : executable) { 
-      move(cmd);
-      delay(1000);
-      if(cmd == 'A' or cmd == 'D'){
-        Curr_orientation = command;
-      }
-      
-    }
-  }
 }
 
 void move(char command) {
@@ -98,6 +109,33 @@ void move(char command) {
   }
 }
 
-void loop() {
 
+void loop() {
+  WiFiClient client = wifiServer.available();
+  if (client) {
+    while (client.connected()) {
+      if (client.available()) {
+        String received = client.readStringUntil('\n');
+        received.trim(); // Remove any trailing whitespace
+
+        if (received.length() == 1) {
+          char newCommand = received.charAt(0);
+          commands += newCommand; // Append the new command to the string
+        }
+      }
+    }
+    client.stop();
+  }
+  if (commands.length() > 0){
+    char commandToProcess = commands[0];
+    string executable = translate[Curr_orientation][commandToProcess];
+    for (char cmd : executable) { 
+      move(cmd);
+      delay(1000);
+      if(cmd == 'A' or cmd == 'D'){
+        Curr_orientation = commandToProcess;
+      } 
+    }
+    commands.remove(0, 1);
+  }
 }
