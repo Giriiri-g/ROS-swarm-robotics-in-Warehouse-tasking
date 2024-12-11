@@ -1,7 +1,7 @@
 #include <map>
 #include <string>
 using namespace std;
-
+// IMPORTANT = ROBOT 1 code uses different pin configuration
 typedef std::map<char, string> InnerMap; // Map char to string
 typedef std::map<char, InnerMap> NestedMap; // Map char to InnerMap
 
@@ -10,7 +10,7 @@ int m1pin2 = 25;
 int m1pin1 = 26; 
 int m2pin1 = 13; 
 int m2pin2 = 27; 
-char commands[] = {'W', 'A', 'S', 'D' };
+char commands[] = {'W', 'A', 'S', 'D'};
 char Curr_orientation = 'W';
 
 void setup() {
@@ -40,7 +40,6 @@ void setup() {
 
   Serial.begin(115200);
   Serial.println("Testing DC Motor...");
-
   for (int i = 0; i < sizeof(commands); i++) {
     char command = commands[i];
     string executable = translate[Curr_orientation][command];
@@ -58,16 +57,6 @@ void setup() {
 void move(char command) {
   if (command == 'W') {
     Serial.println("Moving Forward");
-    digitalWrite(m1pin2, LOW);
-    digitalWrite(m1pin1, HIGH);
-    digitalWrite(m2pin2, LOW);
-    digitalWrite(m2pin1, HIGH);
-    delay(1300);
-    digitalWrite(m1pin1, LOW);
-    digitalWrite(m2pin1, LOW);
-  } 
-  else if (command == 'S') {
-    Serial.println("Moving Backward");
     digitalWrite(m1pin1, LOW);
     digitalWrite(m1pin2, HIGH);
     digitalWrite(m2pin1, LOW);
@@ -75,6 +64,16 @@ void move(char command) {
     delay(1300);
     digitalWrite(m1pin2, LOW);
     digitalWrite(m2pin2, LOW);
+  } 
+  else if (command == 'S') {
+    Serial.println("Moving Backward");
+    digitalWrite(m1pin2, LOW);
+    digitalWrite(m1pin1, HIGH);
+    digitalWrite(m2pin2, LOW);
+    digitalWrite(m2pin1, HIGH);
+    delay(1300);
+    digitalWrite(m1pin1, LOW);
+    digitalWrite(m2pin1, LOW);
   } 
   else if (command == 'D') {
     Serial.println("Turning Right");
@@ -99,5 +98,4 @@ void move(char command) {
 }
 
 void loop() {
-
 }
