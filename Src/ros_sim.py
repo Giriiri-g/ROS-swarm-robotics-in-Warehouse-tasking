@@ -122,7 +122,7 @@ def assign_task_to_robot(robot):
             path_to_start = []
         task_path = find_path(start, goal)
         robot["path"] = path_to_start + task_path
-        print(f"Robot {robot['id']} assigned path: {robot['path'].pop(0)}")
+        # print(f"Robot {robot['id']} assigned path: {robot['path'].pop(0)}")
         robot["goal"] = goal
         robot["step"] = 0
         robot["status"] = "busy"
@@ -135,7 +135,7 @@ def move_robot(robot, node=None):
         robot["curr_node"] = robot["next_node"]
         message = f"R{robot['id']}_{robot['curr_node']}"
         command_pub.publish(message)
-        print(f"Robot {robot['id']} moving to {robot['next_node']} (step {robot['step'] + 1})")
+        # print(f"Robot {robot['id']} moving to {robot['next_node']} (step {robot['step'] + 1})")
         robot["step"] += 1
         if robot['step'] < len(robot["path"]):
             robot['next_node'] = robot['path'][robot['step']]
@@ -144,7 +144,7 @@ def move_robot(robot, node=None):
 
         # Check if task is completed
         if robot["curr_node"] == robot["path"][-1]:
-            print(f"Task {task_counter} completed by Robot {robot['id']}!")
+            # print(f"Task {task_counter} completed by Robot {robot['id']}!")
             task_counter += 1
             robot["status"] = "free"
             robot["path"] = []
@@ -154,7 +154,7 @@ def move_robot(robot, node=None):
             assign_task_to_robot(robot)
     else:
         # For Deadlock resolving
-        print(f"Robot {robot['id']} Docking to {node} (step {robot['step'] + 1})")
+        # print(f"Robot {robot['id']} Docking to {node} (step {robot['step'] + 1})")
         robot["next_node"] = robot["curr_node"]
         robot["curr_node"] = node
         message = f"R{robot['id']}_{robot['curr_node']}"
@@ -176,9 +176,9 @@ while running:
 
     draw_graph()
     robot = robots[0]
-    print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
+    # print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
     robot = robots[1]
-    print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
+    # print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
     # Assign tasks to free robots
     for robot in robots:
         if robot["status"] == "free":
@@ -197,7 +197,7 @@ while running:
                 if (other_robot["id"] != robot["id"] and other_robot["status"] == "busy"):
                     if other_robot.get("next_node") == robot["next_node"]:
                         # Conflict detected, set the current robot to wait
-                        print("Conflict 1")
+                        # print("Conflict 1")
                         if len(robot['path'][robot['step']:]) > len(other_robot['path'][other_robot['step']:]):
                             other_robot["status"] = "wait"
                             break
@@ -206,7 +206,7 @@ while running:
                             break
                     if other_robot.get("next_node") == robot["curr_node"] and robot.get("next_node") == other_robot["curr_node"]:
                         # send one of the robots to Docking point: implement later
-                        print("Conflict 2")
+                        # print("Conflict 2")
                         docking_points1 = set(graph.neighbors(robot["curr_node"])) - set(other_robot["path"])
                         docking_points2 = set(graph.neighbors(other_robot["curr_node"])) - set(robot["path"])
                         if (len(docking_points1) ^ len(docking_points2)) == 1:
@@ -224,9 +224,9 @@ while running:
     time.sleep(2)
     pygame.display.flip()
     robot = robots[0]
-    print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
+    # print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
     robot = robots[1]
-    print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
+    # print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
 
     # input()
 

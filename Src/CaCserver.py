@@ -13,8 +13,9 @@ Stage3_Queue = []
 def ack_response_r1_callback(ACKR):
     global Stage1_Queue, Stage2_Queue
     for ind, command in enumerate(Stage1_Queue.copy()):
+        print(ind,command,ACKR.data)
         if command["ID"] == ACKR.data.split('_')[1]:
-            rospy.loginfo(f"Recieved Ack Response from Node R1: Command ID={ACKR.data}")
+            # rospy.loginfo(f"Recieved Ack Response from Node R1: Command ID={ACKR.data}")
             Stage2_Queue.append(Stage1_Queue.pop(ind))
             return
 
@@ -22,7 +23,7 @@ def ack_response_r2_callback(ACKR):
     global Stage1_Queue, Stage2_Queue
     for ind, command in enumerate(Stage1_Queue.copy()):
         if command["ID"] == ACKR.data.split('_')[1]:
-            rospy.loginfo(f"Recieved Ack Response from Node R2: Command ID={ACKR.data}")
+            # rospy.loginfo(f"Recieved Ack Response from Node R2: Command ID={ACKR.data}")
             Stage2_Queue.append(Stage1_Queue.pop(ind))
             return
 
@@ -30,7 +31,7 @@ def robot1_position_callback(POSR):
     global Stage3_Queue
     for ind, command in enumerate(Stage3_Queue.copy()):
         if command["ID"] == POSR.data.split('_')[1]:
-            rospy.loginfo(f"Recieved Response from Node R1: Command ID={POSR.data}")
+            # rospy.loginfo(f"Recieved Response from Node R1: Command ID={POSR.data}")
             if POSR.data.split('_')[2] == 'Failure':
                 rospy.logerr(f"Fatal Error: R1 Aborted Command={POSR.data.split('_')[0]}, Command ID={POSR.data.split('_')[1]}")
             else:
@@ -42,7 +43,7 @@ def robot2_position_callback(POSR):
     global Stage3_Queue
     for ind, command in enumerate(Stage3_Queue.copy()):
         if command["ID"] == POSR.data.split('_')[1]:
-            rospy.loginfo(f"Recieved Response from Node R2: Command ID={POSR.data}")
+            # rospy.loginfo(f"Recieved Response from Node R2: Command ID={POSR.data}")
             if POSR.data.split('_')[2] == 'Failure':
                 rospy.logerr(f"Fatal Error: R2 Aborted Command={POSR.data.split('_')[0]}, Command ID={POSR.data.split('_')[1]}")
             else:
@@ -82,19 +83,19 @@ def core_node():
             Command_Queue = []
         for command in Stage1_Queue:
             if command["Node"] == "R1":
-                rospy.loginfo(f"Publishing ACK ID: {command['ID']} to Node R1.")
+                # rospy.loginfo(f"Publishing ACK ID: {command['ID']} to Node R1.")
                 ack_pub_r1.publish(f"ACK_{command['ID']}")
             else:
-                rospy.loginfo(f"Publishing ACK ID: {command['ID']} to Node R2.")
+                # rospy.loginfo(f"Publishing ACK ID: {command['ID']} to Node R2.")
                 ack_pub_r2.publish(f"ACK_{command['ID']}")
         index=[]
         for ind, command in enumerate(Stage2_Queue):
             if command["Node"] == "R1":
-                rospy.loginfo(f"Publishing Command {command['ID']} to Node R1: {command['command']}")
+                # rospy.loginfo(f"Publishing Command {command['ID']} to Node R1: {command['command']}")
                 position_pub_r1.publish(f"{command['command']}_{command['ID']}")
                 index.append(ind)
             else:
-                rospy.loginfo(f"Publishing Command {command['ID']} to Node R2: {command['command']}")
+                # rospy.loginfo(f"Publishing Command {command['ID']} to Node R2: {command['command']}")
                 position_pub_r2.publish(f"{command['command']}_{command['ID']}")
                 index.append(ind)
         for ind in index[::-1]:
