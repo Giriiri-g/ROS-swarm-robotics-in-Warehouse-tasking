@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import pygame
 import networkx as nx
 import time
@@ -107,7 +109,8 @@ robots = [
 
 # Tasks: Input as start -> goal pairs
 # tasks = [("X1", "X4"), ("X2", "X6"), ("X4", "X3"), ("X6", "X1"), ("X3", "X6")] # Set 1 of tasks success
-tasks = [("X1", "X4"), ("X5", "X2")] # Set 2 of tasks
+# tasks = [("X1", "X4"), ("X5", "X2")] # Set 2 of tasks
+tasks = [("X1", "X6")]
 
 # Task assignment function
 def assign_task_to_robot(robot):
@@ -130,7 +133,8 @@ def move_robot(robot, node=None):
         global task_counter
         # Move the robot to the next node
         robot["curr_node"] = robot["next_node"]
-        # SEND (robot["id"], robot["curr_node"]) to CaCserve.py
+        message = f"R{robot['id']}_{robot['curr_node']}"
+        command_pub.publish(message)
         print(f"Robot {robot['id']} moving to {robot['next_node']} (step {robot['step'] + 1})")
         robot["step"] += 1
         if robot['step'] < len(robot["path"]):
@@ -153,7 +157,8 @@ def move_robot(robot, node=None):
         print(f"Robot {robot['id']} Docking to {node} (step {robot['step'] + 1})")
         robot["next_node"] = robot["curr_node"]
         robot["curr_node"] = node
-        # SEND (robot["id"], robot["curr_node"]) to CaCserve.py
+        message = f"R{robot['id']}_{robot['curr_node']}"
+        command_pub.publish(message)
         robot["path"].insert(robot["step"], node)
         robot["step"]+=1
         robot["path"].insert(robot["step"], robot["curr_node"])

@@ -4,7 +4,8 @@ import rospy
 from std_msgs.msg import String
 
 Command_ID = 0
-Command_Queue = [{"Node":"R1", "ID":'21', "command":"I1"}, {"Node":"R2", "ID":'22', "command":"I10"}]
+# Command_Queue = [{"Node":"R1", "ID":'21', "command":"I1"}, {"Node":"R2", "ID":'22', "command":"I10"}]
+Command_Queue = []
 Stage1_Queue = []
 Stage2_Queue = []
 Stage3_Queue = []
