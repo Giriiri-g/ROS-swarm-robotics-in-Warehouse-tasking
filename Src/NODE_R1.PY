@@ -45,7 +45,7 @@ def on_ack_received(msg):
     global Stage1Queue
     data = msg.data
     if data not in Stage1Queue:
-        rospy.loginfo(f"New ACK Handshake Initiated to NODE_R1: command ID={data.split('_')[1]}.")
+        # rospy.loginfo(f"New ACK Handshake Initiated to NODE_R1: command ID={data.split('_')[1]}.")
         Stage1Queue.append(msg.data)
 
 def on_position_received(msg):
@@ -53,10 +53,10 @@ def on_position_received(msg):
     # msg.data = X1_23 => command_command-ID
     command, id = msg.data.split('_')
     if id in Stage2Queue:
-        rospy.loginfo(f"Command Received from Command and Control Server\nConnection Already Established: Command={command}, ID={id}")
+        #rospy.loginfo(f"Command Received from Command and Control Server\nConnection Already Established: Command={command}, ID={id}")
         Stage2Queue.remove(id)
         Stage3Queue.append(translate[curr_node][command] + '_' + id)
-        rospy.loginfo(f"Command Translated to Machine Command: Command={command} ID={id} Translation={translate[curr_node][command]}")
+        rospy.loginfo(f"R1 Command Translated to Machine Command: Command={command} ID={id} Translation={translate[curr_node][command]}")
 
 def move(command, id):
     """
@@ -65,7 +65,7 @@ def move(command, id):
     """
     global Processing, MachineCommand_Queue
     Processing = True
-    rospy.loginfo(f"Machine Command Sent to Robot 1: Command={command} ID={id}")
+    # rospy.loginfo(f"Machine Command Sent to Robot 1: Command={command} ID={id}")
     MachineCommand_Queue += command
     pass
 
@@ -85,7 +85,7 @@ def robot1_node():
         index = []
         for ind, command in enumerate(Stage1Queue):
             ack_response_pub.publish(command)
-            rospy.loginfo(f"ACK Accepted. Returning ACK: command ID={command.split('_')[1]}")
+            # rospy.loginfo(f"ACK Accepted. Returning ACK: command ID={command.split('_')[1]}")
             index.append(ind)
         for ind in index[::-1]:
             Stage2Queue.append(Stage1Queue.pop(ind).split('_')[1])
@@ -101,6 +101,6 @@ def robot1_node():
 if __name__ == '__main__':
     try:
         robot1_node()
-        print("NODE_R1 Commands:", MachineCommand_Queue)
+        # print("NODE_R1 Commands:", MachineCommand_Queue)
     except rospy.ROSInterruptException:
         pass
