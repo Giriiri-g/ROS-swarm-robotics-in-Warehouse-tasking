@@ -134,7 +134,7 @@ def move_robot(robot, node=None):
         # Move the robot to the next node
         robot["curr_node"] = robot["next_node"]
         message = f"R{robot['id']}_{robot['curr_node']}"
-        command_pub.publish(message)
+        # command_pub.publish(message)
         # print(f"Robot {robot['id']} moving to {robot['next_node']} (step {robot['step'] + 1})")
         robot["step"] += 1
         if robot['step'] < len(robot["path"]):
@@ -158,7 +158,7 @@ def move_robot(robot, node=None):
         robot["next_node"] = robot["curr_node"]
         robot["curr_node"] = node
         message = f"R{robot['id']}_{robot['curr_node']}"
-        command_pub.publish(message)
+        # command_pub.publish(message)
         robot["path"].insert(robot["step"], node)
         robot["step"]+=1
         robot["path"].insert(robot["step"], robot["curr_node"])

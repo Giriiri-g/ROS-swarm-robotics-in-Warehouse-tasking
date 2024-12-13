@@ -7,8 +7,8 @@ using namespace std;
 typedef std::map<char, string> InnerMap; // Map char to string
 typedef std::map<char, InnerMap> NestedMap; // Map char to InnerMap
 
-const char* ssid = ";)";             // Replace with your WiFi SSID
-const char* password = "123456788";  // Replace with your WiFi password
+const char* ssid = "POCO M2 Pro";             // Replace with your WiFi SSID
+const char* password = "1234567890";  // Replace with your WiFi password
 
 String commands = "";            // Dynamic command storage initialized with some default commands
 

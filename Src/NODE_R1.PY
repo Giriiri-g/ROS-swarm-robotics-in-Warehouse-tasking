@@ -37,7 +37,7 @@ curr_node = "X1"
 Processing = False
 Stage1Queue = []
 Stage2Queue = []
-Stage3Queue = []
+Stage3Queue = ['W_1', 'A_2', 'S_3', 'D_4']
 Stage4Queue = ''
 MachineCommand_Queue = ''
 
