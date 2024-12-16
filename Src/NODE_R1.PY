@@ -37,7 +37,7 @@ curr_node = "X1"
 Processing = False
 Stage1Queue = []
 Stage2Queue = []
-Stage3Queue = ['W_1', 'A_2', 'S_3', 'D_4']
+Stage3Queue = []
 Stage4Queue = ''
 MachineCommand_Queue = ''
 
@@ -52,12 +52,6 @@ def send_to_esp32(ip, port, message):
         # Send the message
         print(f"Sending: {message}")
         client_socket.sendall((message + "\n").encode())  # Add newline for ESP32
-
-        # Receive response
-        response = client_socket.recv(1024).decode()
-        print(f"Received: {response}")
-
-        # Close the connection
         client_socket.close()
     except Exception as e:
         print(f"Error: {e}")
@@ -77,7 +71,8 @@ def on_position_received(msg):
         #rospy.loginfo(f"Command Received from Command and Control Server\nConnection Already Established: Command={command}, ID={id}")
         Stage2Queue.remove(id)
         Stage3Queue.append(translate[curr_node][command] + '_' + id)
-        rospy.loginfo(f"R1 Command Translated to Machine Command: Command={command} ID={id} Translation={translate[curr_node][command]}")
+        # rospy.loginfo(f"R1 Command Translated to Machine Command: Command={command} ID={id} Translation={translate[curr_node][command]}")
+        curr_node = command
 
 def move(command, id):
     """
@@ -86,7 +81,7 @@ def move(command, id):
     """
     global Processing, MachineCommand_Queue
     Processing = True
-    send_to_esp32("192.168.142.203",80,command)
+    send_to_esp32("192.168.81.203",80,command)
     # rospy.loginfo(f"Machine Command Sent to Robot 1: Command={command} ID={id}")
     MachineCommand_Queue += command
     pass

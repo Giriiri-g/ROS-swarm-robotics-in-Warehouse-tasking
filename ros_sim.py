@@ -4,7 +4,8 @@ import pygame
 import networkx as nx
 import time
 import heapq
-import socket
+import rospy
+from std_msgs.msg import String
 
 # Initialize Pygame
 pygame.init()
@@ -109,25 +110,24 @@ robots = [
 # Tasks: Input as start -> goal pairs
 # tasks = [("X1", "X4"), ("X2", "X6"), ("X4", "X3"), ("X6", "X1"), ("X3", "X6")] # Set 1 of tasks success
 # tasks = [("X1", "X4"), ("X5", "X2")] # Set 2 of tasks
-tasks = [("X1", "X4"), ("X5", "R3")]
+tasks = [("X1", "X6")]
 
 # Task assignment function
-def assign_task_to_robot():
-    for robot in robots:
-        if tasks:
-            start, goal = tasks.pop(0)
-            if robot["curr_node"] != start:
-                path_to_start = find_path(robot["curr_node"], start)
-            else:
-                path_to_start = []
-            task_path = find_path(start, goal)
-            robot["path"] = path_to_start + task_path
-            robot["path"]= robot["path"][1:]
-            # print(f"Robot {robot['id']} assigned path: {robot['path'].pop(0)}")
-            robot["goal"] = goal
-            robot["step"] = 0
-            robot["status"] = "busy"
-            robot["next_node"] = robot["path"][0] if robot["path"] else None
+def assign_task_to_robot(robot):
+    if tasks:
+        start, goal = tasks.pop(0)
+        if robot["curr_node"] != start:
+            path_to_start = find_path(robot["curr_node"], start)
+        else:
+            path_to_start = []
+        task_path = find_path(start, goal)
+        robot["path"] = path_to_start + task_path
+        robot["path"]= robot["path"][1:]
+        # print(f"Robot {robot['id']} assigned path: {robot['path'].pop(0)}")
+        robot["goal"] = goal
+        robot["step"] = 0
+        robot["status"] = "busy"
+        robot["next_node"] = robot["path"][0] if robot["path"] else None
 
 def move_robot(robot, node=None):
     if node is None:
@@ -136,7 +136,6 @@ def move_robot(robot, node=None):
         robot["curr_node"] = robot["next_node"]
         message = f"R{robot['id']}_{robot['curr_node']}"
         # command_pub.publish(message)
-        ProccessCommand(message)
         # print(f"Robot {robot['id']} moving to {robot['next_node']} (step {robot['step'] + 1})")
         robot["step"] += 1
         if robot['step'] < len(robot["path"]):
@@ -153,7 +152,7 @@ def move_robot(robot, node=None):
             robot["goal"] = None
             robot["next_node"] = None
             # Assign new task immediately
-            assign_task_to_robot()
+            assign_task_to_robot(robot)
     else:
         # For Deadlock resolving
         # print(f"Robot {robot['id']} Docking to {node} (step {robot['step'] + 1})")
@@ -161,105 +160,30 @@ def move_robot(robot, node=None):
         robot["curr_node"] = node
         message = f"R{robot['id']}_{robot['curr_node']}"
         # command_pub.publish(message)
-        ProccessCommand(message)
         robot["path"].insert(robot["step"], node)
         robot["step"]+=1
         robot["path"].insert(robot["step"], robot["curr_node"])
         robot["status"] = "wait"
 
-translate = {
-    "X1": {"I1": "S"},
-    "I1": {"X1": "W", "I2": "S", "R1": "D"},
-    "I2": {"I1": "W", "I3": "S", "I4": "D"},
-    "I3": {"I2": "W", "R2": "D", "X2": "S"},
-    "I4": {"I2": "A", "I5": "D", "R3": "S"},
-    "I5": {"I4": "A", "I6": "W", "I7": "S", "I8": "D"},
-    "I6": {"I5": "S", "R5": "A", "X3": "W"},
-    "I7": {"I5": "W", "R4": "A", "X4": "S"},
-    "I8": {"I5": "A", "I9": "D", "R6": "S"},
-    "I9": {"I8": "A", "I10": "W", "I11": "S"},
-    "I10": {"I9": "S", "R7": "A", "X5": "W"},
-    "I11": {"I9": "W", "R8": "A", "X6": "S"},
-    "R1": {"I1": "A"},
-    "R2": {"I3": "A"},
-    "R3": {"I4": "A"},
-    "R4": {"I7": "D"},
-    "R5": {"I6": "D"},
-    "R6": {"I8": "W"},
-    "R7": {"I10": "D"},
-    "R8": {"I11": "D"},
-    "X2": {"I3": "W"},
-    "X3": {"I6": "S"},
-    "X4": {"I7": "W"},
-    "X5": {"I10": "S"},
-    "X6": {"I11": "W"}
-}
-
-orient = {
-    'W': {'W': "W", 'A': "DW", 'S': "S", 'D': "AW"},
-    'A': {'W': "AW", 'A': "W", 'S': "DW", 'D': "S"},
-    'S': {'W': "S", 'A': "AW", 'S': "W", 'D': "DW"},
-    'D': {'W': "AW", 'A': "S", 'S': "AW", 'D': "W"}
-}
-
-
-curr_node = {"R1":"X1", "R2":"X5"}
-curr_orientation = {"R1":"S", "R2":"S"}
-def ProccessCommand(command): # 'R1_I1'
-    node, command = command.split('_')
-    # print(node, command, robots[0], robots[1])
-    dir_command = translate[curr_node[node]][command]
-    curr_node[node] = command
-    commands = orient[dir_command][curr_orientation[node]]
-    if node == "R2":
-        if len(commands)>1:
-            for cmd in commands:
-                send_to_esp32("192.168.137.104", 80, cmd)
-                if cmd == 'A' or cmd == 'D':
-                    curr_orientation[node] = dir_command
-                time.sleep(1.5)
-        else:
-            send_to_esp32("192.168.137.104", 80, commands)
-            time.sleep(1.5)
-    else:
-        if len(commands)>1:
-            for cmd in commands:
-                send_to_esp32("192.168.137.244", 80, cmd)
-                if cmd == 'A' or cmd == 'D':
-                    curr_orientation[node] = dir_command
-                time.sleep(1.5)
-        else:
-            send_to_esp32("192.168.137.244", 80, commands)
-            time.sleep(1.5)
-
-def send_to_esp32(ip, port, message):
-    try:
-        # Create a socket object
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # Connect to the ESP32 server
-        client_socket.connect((ip, port))
-        print(f"Connected to ESP32 at {ip}:{port}")
-
-        # Send the message
-        print(f"Sending: {message}")
-        client_socket.sendall((message + "\n").encode())  # Add newline for ESP32
-        client_socket.close()
-    except Exception as e:
-        print(f"Error: {e}")
-
 # Main simulation loop
 task_counter = 1
 running = True
+rospy.init_node('LogicSystems', anonymous=True)
+command_pub = rospy.Publisher('/Logic_to_CCS', String, queue_size=10)
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    assign_task_to_robot()
+
     draw_graph()
+    robot = robots[0]
+    # print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
+    robot = robots[1]
+    # print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
     # Assign tasks to free robots
     for robot in robots:
         if robot["status"] == "free":
-            assign_task_to_robot()
+            assign_task_to_robot(robot)
         elif robot["status"] == "busy":
             move_robot(robot)
         else: # robot["status"] == "wait"
@@ -300,5 +224,11 @@ while running:
 
     time.sleep(2)
     pygame.display.flip()
+    robot = robots[0]
+    # print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
+    robot = robots[1]
+    # print(f"Robot {robot['id']} State: step={robot['step']}, path={robot['path']}, status={robot['status']}, curr_node={robot['curr_node']}, next_node={robot['next_node']}")
+
+    # input()
 
 pygame.quit()

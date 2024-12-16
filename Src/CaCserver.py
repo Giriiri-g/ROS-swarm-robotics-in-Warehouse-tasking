@@ -13,7 +13,6 @@ Stage3_Queue = []
 def ack_response_r1_callback(ACKR):
     global Stage1_Queue, Stage2_Queue
     for ind, command in enumerate(Stage1_Queue.copy()):
-        print(ind,command,ACKR.data)
         if command["ID"] == ACKR.data.split('_')[1]:
             # rospy.loginfo(f"Recieved Ack Response from Node R1: Command ID={ACKR.data}")
             Stage2_Queue.append(Stage1_Queue.pop(ind))

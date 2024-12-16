@@ -37,6 +37,7 @@ curr_node = "X5"
 Processing = False
 Stage1Queue = []
 Stage2Queue = []
+# Stage3Queue = []
 Stage3Queue = ['W_1', 'A_2', 'S_3', 'D_4']
 Stage4Queue = ''
 MachineCommand_Queue = ''
@@ -87,7 +88,7 @@ def move(command, id):
     """
     global Processing, MachineCommand_Queue
     Processing = True
-    send_to_esp32("192.168.142.203",80,command)
+    send_to_esp32("192.168.137.155",80,command)
     # rospy.loginfo(f"Machine Command Sent to Robot 2: Command={command} ID={id}")
     MachineCommand_Queue += command
     pass
@@ -115,6 +116,7 @@ def robot2_node():
 
 
         if not Processing and Stage3Queue != []:
+            rospy.loginfo(f"R2 Queue: {Stage3Queue}")
             Stage4Queue = Stage3Queue.pop(0)
             command, id = Stage4Queue.split('_')
             move(command, id)
