@@ -54,7 +54,7 @@ def robot2_position_callback(POSR):
 def LogicInput(command): # command of the form "NODE_State" -> "R1_I10"
     global Command_Queue, Command_ID
     Node, State = command.data.split("_")
-    Command_Queue.append({"Node":Node, "ID":Command_ID, "command":State})
+    Command_Queue.append({"Node":Node, "ID":str(Command_ID), "command":State})
     Command_ID+=1
 
 def core_node():

@@ -7,8 +7,8 @@ using namespace std;
 typedef std::map<char, string> InnerMap; // Map char to string
 typedef std::map<char, InnerMap> NestedMap; // Map char to InnerMap
 
-const char* ssid = "POCO M2 Pro";             // Replace with your WiFi SSID
-const char* password = "1234567890";  // Replace with your WiFi password
+const char* ssid = "Giriirig";             // Replace with your WiFi SSID
+const char* password = "milesmyrandi";  // Replace with your WiFi password
 
 String commands = "";            // Dynamic command storage initialized with some default commands
 
@@ -20,6 +20,7 @@ int m1pin1 = 26;
 int m2pin1 = 13; 
 int m2pin2 = 27; 
 char Curr_orientation = 'W';
+int ledPin = 2;
 
 void setup() {
 
@@ -27,14 +28,10 @@ void setup() {
 
   // Connect to WiFi
   WiFi.begin(ssid, password);
-  Serial.print("Connecting to WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.print(".");
   }
-  Serial.println("\nConnected to WiFi");
-  Serial.print("ESP32 IP Address: ");
-  Serial.println(WiFi.localIP());
   
   wifiServer.begin();
 
@@ -43,6 +40,7 @@ void setup() {
   pinMode(m1pin2, OUTPUT);
   pinMode(m2pin1, OUTPUT);
   pinMode(m2pin2, OUTPUT);
+  pinMode(ledPin, OUTPUT);
 
   // translate[curr_orientation][command] = "executable command"
   // set the curr_orientation to the command after moving
@@ -68,7 +66,6 @@ void setup() {
 
 void move(char command) {
   if (command == 'W') {
-    Serial.println("Moving Forward");
     digitalWrite(m1pin2, LOW);
     digitalWrite(m1pin1, HIGH);
     digitalWrite(m2pin2, LOW);
@@ -78,7 +75,6 @@ void move(char command) {
     digitalWrite(m2pin1, LOW);
   } 
   else if (command == 'S') {
-    Serial.println("Moving Backward");
     digitalWrite(m1pin1, LOW);
     digitalWrite(m1pin2, HIGH);
     digitalWrite(m2pin1, LOW);
@@ -88,7 +84,6 @@ void move(char command) {
     digitalWrite(m2pin2, LOW);
   } 
   else if (command == 'D') {
-    Serial.println("Turning Right");
     digitalWrite(m1pin1, HIGH);
     digitalWrite(m1pin2, LOW);
     digitalWrite(m2pin1, LOW);
@@ -98,7 +93,6 @@ void move(char command) {
     digitalWrite(m2pin2, LOW);
   } 
   else if (command == 'A') {
-    Serial.println("Turning Left");
     digitalWrite(m1pin2, HIGH);
     digitalWrite(m1pin1, LOW);
     digitalWrite(m2pin2, LOW);
@@ -116,11 +110,14 @@ void loop() {
     while (client.connected()) {
       if (client.available()) {
         String received = client.readStringUntil('\n');
-        received.trim(); // Remove any trailing whitespace
+        received.trim();
 
         if (received.length() == 1) {
           char newCommand = received.charAt(0);
           commands += newCommand; // Append the new command to the string
+          digitalWrite(ledPin, HIGH);
+          delay(200);
+          digitalWrite(ledPin, LOW);
         }
       }
     }
@@ -131,7 +128,6 @@ void loop() {
     string executable = translate[Curr_orientation][commandToProcess];
     for (char cmd : executable) { 
       move(cmd);
-      delay(1000);
       if(cmd == 'A' or cmd == 'D'){
         Curr_orientation = commandToProcess;
       } 
