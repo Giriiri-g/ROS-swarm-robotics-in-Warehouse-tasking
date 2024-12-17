@@ -3,4 +3,5 @@
 	<node name="Robot1_Controller" type="NODE_R1.py" output="screen" pkg="SwarmROS"/>
 	<node name="Robot2_Controller" type="NODE_R2.py" output="screen" pkg="SwarmROS"/>
 	<node name="LogicSystems" type="ros_sim.py" output="screen" pkg="SwarmROS"/>
+	<node name="simbg" type="sim_bg.py" output="screen" pkg="SwarmROS"/>
 </launch>
