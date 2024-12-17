@@ -13,6 +13,7 @@ Stage3_Queue = []
 def ack_response_r1_callback(ACKR):
     global Stage1_Queue, Stage2_Queue
     for ind, command in enumerate(Stage1_Queue.copy()):
+        print(ind,command,ACKR.data)
         if command["ID"] == ACKR.data.split('_')[1]:
             rospy.loginfo(f"Recieved Ack Response from Node R1: Command ID={ACKR.data}")
             Stage2_Queue.append(Stage1_Queue.pop(ind))
@@ -53,7 +54,7 @@ def robot2_position_callback(POSR):
 def LogicInput(command): # command of the form "NODE_State" -> "R1_I10"
     global Command_Queue, Command_ID
     Node, State = command.data.split("_")
-    Command_Queue.append({"Node":Node, "ID":str(Command_ID), "command":State})
+    Command_Queue.append({"Node":Node, "ID":Command_ID, "command":State})
     Command_ID+=1
 
 def core_node():

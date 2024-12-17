@@ -122,7 +122,6 @@ def assign_task_to_robot(robot):
             path_to_start = []
         task_path = find_path(start, goal)
         robot["path"] = path_to_start + task_path
-        robot["path"]= robot["path"][1:]
         print(f"Robot {robot['id']} assigned path: {robot['path'].pop(0)}")
         robot["goal"] = goal
         robot["step"] = 0

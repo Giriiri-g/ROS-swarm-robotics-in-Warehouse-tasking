@@ -2,7 +2,6 @@
 
 import rospy
 from std_msgs.msg import String
-import socket
 
 # Movement dictionary for R1
 translate = {
@@ -41,20 +40,6 @@ Stage3Queue = []
 Stage4Queue = ''
 MachineCommand_Queue = ''
 
-def send_to_esp32(ip, port, message):
-    try:
-        # Create a socket object
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # Connect to the ESP32 server
-        client_socket.connect((ip, port))
-        print(f"Connected to ESP32 at {ip}:{port}")
-
-        # Send the message
-        print(f"Sending: {message}")
-        client_socket.sendall((message + "\n").encode())  # Add newline for ESP32
-        client_socket.close()
-    except Exception as e:
-        print(f"Error: {e}")
 
 def on_ack_received(msg):
     global Stage1Queue
@@ -72,7 +57,6 @@ def on_position_received(msg):
         Stage2Queue.remove(id)
         Stage3Queue.append(translate[curr_node][command] + '_' + id)
         rospy.loginfo(f"R1 Command Translated to Machine Command: Command={command} ID={id} Translation={translate[curr_node][command]}")
-        curr_node = command
 
 def move(command, id):
     """
@@ -81,7 +65,6 @@ def move(command, id):
     """
     global Processing, MachineCommand_Queue
     Processing = True
-    send_to_esp32("192.168.81.203",80,command)
     rospy.loginfo(f"Machine Command Sent to Robot 1: Command={command} ID={id}")
     MachineCommand_Queue += command
     pass
