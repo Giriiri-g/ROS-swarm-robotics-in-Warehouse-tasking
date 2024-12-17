@@ -62,7 +62,7 @@ void move(char command) {
     digitalWrite(m1pin2, LOW);
     digitalWrite(m2pin1, LOW);
     digitalWrite(m2pin2, HIGH);
-    delay(500);
+    delay(725);
     digitalWrite(m1pin1, LOW);
     digitalWrite(m2pin2, LOW);
   } 
@@ -71,7 +71,7 @@ void move(char command) {
     digitalWrite(m1pin1, LOW);
     digitalWrite(m2pin2, LOW);
     digitalWrite(m2pin1, HIGH);
-    delay(500);
+    delay(725);
     digitalWrite(m1pin2, LOW);
     digitalWrite(m2pin1, LOW);
   }
