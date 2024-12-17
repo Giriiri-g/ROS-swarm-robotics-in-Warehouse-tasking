@@ -109,7 +109,7 @@ robots = [
 # Tasks: Input as start -> goal pairs
 # tasks = [("X1", "X4"), ("X2", "X6"), ("X4", "X3"), ("X6", "X1"), ("X3", "X6")] # Set 1 of tasks success
 # tasks = [("X1", "X4"), ("X5", "X2")] # Set 2 of tasks
-tasks = [("X1", "X4"), ("X5", "R3")]
+tasks = [("X1", "R2"), ("X5", "R8")]
 
 # Task assignment function
 def assign_task_to_robot():
@@ -214,22 +214,22 @@ def ProccessCommand(command): # 'R1_I1'
     if node == "R2":
         if len(commands)>1:
             for cmd in commands:
-                send_to_esp32("192.168.137.104", 80, cmd)
+                send_to_esp32("192.168.137.117", 80, cmd)
                 if cmd == 'A' or cmd == 'D':
                     curr_orientation[node] = dir_command
                 time.sleep(1.5)
         else:
-            send_to_esp32("192.168.137.104", 80, commands)
+            send_to_esp32("192.168.137.117", 80, commands)
             time.sleep(1.5)
     else:
         if len(commands)>1:
             for cmd in commands:
-                send_to_esp32("192.168.137.244", 80, cmd)
+                send_to_esp32("192.168.137.174", 80, cmd)
                 if cmd == 'A' or cmd == 'D':
                     curr_orientation[node] = dir_command
                 time.sleep(1.5)
         else:
-            send_to_esp32("192.168.137.244", 80, commands)
+            send_to_esp32("192.168.137.174", 80, commands)
             time.sleep(1.5)
 
 def send_to_esp32(ip, port, message):
