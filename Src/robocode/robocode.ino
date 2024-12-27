@@ -1,26 +1,14 @@
-#include <map>
-#include <string>
 #include <WiFi.h>
 
-using namespace std;
-// IMPORTANT = ROBOT 1 code uses different pin configuration
+const char* ssid = "Giriirig";
+const char* password = "password";
 
-const char* ssid = "Giriirig";             // Replace with your WiFi SSID
-const char* password = "milesmyrandi";  // Replace with your WiFi password
+WiFiServer wifiServer(80);
 
-WiFiServer wifiServer(80); 
-
-int m1pin2 = 25; 
-int m1pin1 = 26; 
-int m2pin1 = 13; 
-int m2pin2 = 27; 
-int ledPin = 2;
+int m1p1 = 26, m1p2 = 25, m2p1 = 13, m2p2 = 27, led = 2;
 
 void setup() {
-
   Serial.begin(115200);
-
-  // Connect to WiFi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
@@ -29,53 +17,79 @@ void setup() {
   
   wifiServer.begin();
 
-
-  pinMode(m1pin1, OUTPUT);
-  pinMode(m1pin2, OUTPUT);
-  pinMode(m2pin1, OUTPUT);
-  pinMode(m2pin2, OUTPUT);
-  pinMode(ledPin, OUTPUT);
+  pinMode(m1p1, OUTPUT);
+  pinMode(m1p2, OUTPUT);
+  pinMode(m2p1, OUTPUT);
+  pinMode(m2p2, OUTPUT);
+  pinMode(led, OUTPUT);
 }
 
-void move(char command) {
-  if (command == 'W') {
-    digitalWrite(m1pin2, LOW);
-    digitalWrite(m1pin1, HIGH);
-    digitalWrite(m2pin2, LOW);
-    digitalWrite(m2pin1, HIGH);
-    delay(1300);
-    digitalWrite(m1pin1, LOW);
-    digitalWrite(m2pin1, LOW);
-  } 
-  else if (command == 'S') {
-    digitalWrite(m1pin1, LOW);
-    digitalWrite(m1pin2, HIGH);
-    digitalWrite(m2pin1, LOW);
-    digitalWrite(m2pin2, HIGH);
-    delay(1300);
-    digitalWrite(m1pin2, LOW);
-    digitalWrite(m2pin2, LOW);
-  } 
-  else if (command == 'D') {
-    digitalWrite(m1pin1, HIGH);
-    digitalWrite(m1pin2, LOW);
-    digitalWrite(m2pin1, LOW);
-    digitalWrite(m2pin2, HIGH);
-    delay(725);
-    digitalWrite(m1pin1, LOW);
-    digitalWrite(m2pin2, LOW);
-  } 
-  else if (command == 'A') {
-    digitalWrite(m1pin2, HIGH);
-    digitalWrite(m1pin1, LOW);
-    digitalWrite(m2pin2, LOW);
-    digitalWrite(m2pin1, HIGH);
-    delay(725);
-    digitalWrite(m1pin2, LOW);
-    digitalWrite(m2pin1, LOW);
+void move(char command, int speed) {
+  switch (command) {
+    case 'W':
+      digitalWrite(m1p2, LOW);
+      digitalWrite(m1p1, HIGH);
+      digitalWrite(m2p2, LOW);
+      digitalWrite(m2p1, HIGH);
+      delay(speed);
+      relax();
+      break;
+    case 'S':
+      digitalWrite(m1p1, LOW);
+      digitalWrite(m1p2, HIGH);
+      digitalWrite(m2p1, LOW);
+      digitalWrite(m2p2, HIGH);
+      delay(speed);
+      relax();
+      break;
+    case 'D':
+      digitalWrite(m1p1, HIGH);
+      digitalWrite(m1p2, LOW);
+      digitalWrite(m2p1, LOW);
+      digitalWrite(m2p2, HIGH);
+      delay(speed);
+      relax();
+      move('W', 1300);
+      break;
+    case 'A':
+      digitalWrite(m1p2, HIGH);
+      digitalWrite(m1p1, LOW);
+      digitalWrite(m2p2, LOW);
+      digitalWrite(m2p1, HIGH);
+      delay(speed);
+      relax();
+      move('W', 1300);
+      break;
+    default:
+      return;
   }
 }
 
+void relax(){
+  digitalWrite(m1p1, LOW);
+  digitalWrite(m1p2, LOW);
+  digitalWrite(m2p1, LOW);
+  digitalWrite(m2p2, LOW);
+}
+
+void parseAndExecute(String data) {
+  data.replace("(", "");
+  data.replace(")", "");
+  
+  int firstEnd = data.indexOf(',');
+  int secondStart = data.indexOf(',', firstEnd + 1) + 2;
+  char command = data.charAt(secondStart);
+
+  int speedStart = data.indexOf(',', secondStart) + 2;
+  int speedEnd = data.indexOf(',', speedStart);
+  if (speedEnd == -1) speedEnd = data.length();
+
+  int speed = data.substring(speedStart, speedEnd).toInt();
+  digitalWrite(led, HIGH);
+  delay(200);
+  digitalWrite(led, LOW);
+  move(command, speed);
+}
 
 void loop() {
   WiFiClient client = wifiServer.available();
@@ -84,14 +98,7 @@ void loop() {
       if (client.available()) {
         String received = client.readStringUntil('\n');
         received.trim();
-
-        if (received.length() == 1) {
-          char newCommand = received.charAt(0);
-          digitalWrite(ledPin, HIGH);
-          delay(200);
-          digitalWrite(ledPin, LOW);
-          move(newCommand);
-        }
+        parseAndExecute(received);
       }
     }
     client.stop();

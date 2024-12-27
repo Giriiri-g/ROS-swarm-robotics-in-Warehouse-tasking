@@ -1,99 +1,111 @@
-#include <map>
-#include <string>
 #include <WiFi.h>
 
-using namespace std;
 // IMPORTANT = ROBOT 1 code uses different pin configuration
 
-const char* ssid = "Giriirig";             // Replace with your WiFi SSID
-const char* password = "milesmyrandi";  // Replace with your WiFi password
+const char* ssid = "Giriirig";
+const char* password = "password";
 
+WiFiServer wifiServer(80);
 
-WiFiServer wifiServer(80); 
-
-int m1pin2 = 25; 
-int m1pin1 = 26; 
-int m2pin1 = 13; 
-int m2pin2 = 27; 
-int ledPin = 2;
+const int m1pin1 = 26, m1pin2 = 25, m2pin1 = 13, m2pin2 = 27, ledPin = 2;
 
 void setup() {
-
   Serial.begin(115200);
 
-  // Connect to WiFi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.print(".");
   }
+  Serial.println("\nConnected to WiFi");
   wifiServer.begin();
-
 
   pinMode(m1pin1, OUTPUT);
   pinMode(m1pin2, OUTPUT);
   pinMode(m2pin1, OUTPUT);
   pinMode(m2pin2, OUTPUT);
   pinMode(ledPin, OUTPUT);
-
 }
 
-void move(char command) {
-  if (command == 'W') {
-    digitalWrite(m1pin1, LOW);
-    digitalWrite(m1pin2, HIGH);
-    digitalWrite(m2pin1, LOW);
-    digitalWrite(m2pin2, HIGH);
-    delay(1300);
-    digitalWrite(m1pin2, LOW);
-    digitalWrite(m2pin2, LOW);
-  } 
-  else if (command == 'S') {
-    digitalWrite(m1pin2, LOW);
-    digitalWrite(m1pin1, HIGH);
-    digitalWrite(m2pin2, LOW);
-    digitalWrite(m2pin1, HIGH);
-    delay(1300);
-    digitalWrite(m1pin1, LOW);
-    digitalWrite(m2pin1, LOW);
-  } 
-  else if (command == 'D') {
-    digitalWrite(m1pin1, HIGH);
-    digitalWrite(m1pin2, LOW);
-    digitalWrite(m2pin1, LOW);
-    digitalWrite(m2pin2, HIGH);
-    delay(725);
-    digitalWrite(m1pin1, LOW);
-    digitalWrite(m2pin2, LOW);
-  } 
-  else if (command == 'A') {
-    digitalWrite(m1pin2, HIGH);
-    digitalWrite(m1pin1, LOW);
-    digitalWrite(m2pin2, LOW);
-    digitalWrite(m2pin1, HIGH);
-    delay(725);
-    digitalWrite(m1pin2, LOW);
-    digitalWrite(m2pin1, LOW);
+void move(char command, int speed) {
+  switch (command) {
+    case 'W':
+      digitalWrite(m1pin1, LOW);
+      digitalWrite(m1pin2, HIGH);
+      digitalWrite(m2pin1, LOW);
+      digitalWrite(m2pin2, HIGH);
+      delay(speed);
+      relax();
+      break;
+    case 'S':
+      digitalWrite(m1pin2, LOW);
+      digitalWrite(m1pin1, HIGH);
+      digitalWrite(m2pin2, LOW);
+      digitalWrite(m2pin1, HIGH);
+      delay(speed);
+      relax();
+      break;
+    case 'D':
+      digitalWrite(m1pin1, HIGH);
+      digitalWrite(m1pin2, LOW);
+      digitalWrite(m2pin1, LOW);
+      digitalWrite(m2pin2, HIGH);
+      delay(speed);
+      relax();
+      move('W', 1300);
+      break;
+    case 'A':
+      digitalWrite(m1pin2, HIGH);
+      digitalWrite(m1pin1, LOW);
+      digitalWrite(m2pin2, LOW);
+      digitalWrite(m2pin1, HIGH);
+      delay(speed);
+      relax();
+      move('W', 1300);
+      break;
+    default:
+      return;
   }
+}
+
+void relax(){
+  digitalWrite(m1pin1, LOW);
+  digitalWrite(m1pin2, LOW);
+  digitalWrite(m2pin1, LOW);
+  digitalWrite(m2pin2, LOW);
+}
+
+
+void parseAndExecute(String data) {
+  data.replace("(", "");
+  data.replace(")", "");
+
+  char command = data.charAt(0);
+  int speed = data.substring(data.indexOf(',') + 2).toInt();
+
+  digitalWrite(ledPin, HIGH);
+  delay(200);
+  digitalWrite(ledPin, LOW);
+
+  move(command, speed);
 }
 
 void loop() {
   WiFiClient client = wifiServer.available();
   if (client) {
+    Serial.println("Client connected");
     while (client.connected()) {
       if (client.available()) {
         String received = client.readStringUntil('\n');
-        received.trim(); // Remove any trailing whitespace
+        received.trim();
 
-        if (received.length() == 1) {
-          char newCommand = received.charAt(0);
-          digitalWrite(ledPin, HIGH);
-          delay(200);
-          digitalWrite(ledPin, LOW);
-          move(newCommand);
+        if (!received.isEmpty()) {
+          Serial.println("Received: " + received);
+          parseAndExecute(received);
         }
       }
     }
     client.stop();
+    Serial.println("Client disconnected");
   }
 }
